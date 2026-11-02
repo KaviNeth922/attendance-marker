@@ -73,12 +73,11 @@
         }
 
         /* === Document/Printable Area Styling === */
-        /* Targeted Fix: Removed rigid 29.7cm width to prevent right-edge clipping in PDF engine */
         #printableArea {
             background-color: white;
             padding: 20px 30px; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 1100px; /* Allows natural wrapping in browser */
+            max-width: 1100px;
             box-sizing: border-box;
             margin: 0 auto;
             font-family: "Times New Roman", Times, serif;
@@ -286,25 +285,41 @@
             }
         }
 
-        // PDF Export using html2pdf
+        // === TARGETED PDF FIX (GitHub Issue #114 / html2canvas) ===
         function exportToPDF() {
-            const editables = document.querySelectorAll('.editable-text');
-            editables.forEach(el => el.style.borderBottom = 'none');
+            // 1. Scroll to top to prevent the canvas capture from being shifted downwards/leftwards
+            window.scrollTo(0, 0); 
             
             const element = document.getElementById('printableArea');
             const currentMonthYear = document.getElementById('displayMonthYear').innerText;
             
-            // Targeted Fix: Explicit margin array (Top, Right, Bottom, Left) forces center alignment, 
-            // and html2canvas 'scale: 2' combined with 'windowWidth' ensures the 31st column is captured.
+            // 2. Temporarily strip hover borders
+            const editables = document.querySelectorAll('.editable-text');
+            editables.forEach(el => el.style.borderBottom = 'none');
+            
+            // 3. Temporarily force exact A4 dimensions and remove auto-margin 
+            // (Auto-margin is the main cause of html2canvas cutting off the right side of tables)
+            const originalMargin = element.style.margin;
+            const originalMaxWidth = element.style.maxWidth;
+            const originalWidth = element.style.width;
+            
+            element.style.margin = '0';
+            element.style.maxWidth = '1122px'; // Standard A4 Landscape pixel width @ 96 DPI
+            element.style.width = '1122px';
+
             const opt = {
-                margin:       [15, 10, 15, 10], // mm
+                margin:       0, // We rely on the CSS padding for margins to prevent double-shrinking
                 filename:     `Attendance_${currentMonthYear.replace(' ', '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1122 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
+                // 4. Restore the UI to normal
+                element.style.margin = originalMargin;
+                element.style.maxWidth = originalMaxWidth;
+                element.style.width = originalWidth;
                 editables.forEach(el => el.style.borderBottom = '');
             });
         }
