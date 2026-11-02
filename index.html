@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Attendance Sheet</title>
     
-    <!-- Required Libraries for Export -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Required Libraries for Export (Replaced html2pdf with direct html2canvas and jsPDF for manual scaling) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
@@ -161,7 +162,7 @@
             <h1>University of Sri Jayewardenepura</h1>
             <h2>Faculty of Humanities and Social Sciences</h2>
             <h2>Department of Political Science</h2>
-            <p>Research Grant No. <span contenteditable="true" class="editable-text">RC/URG/HSS/2026/04</span></p>
+            <p>Research Grant No. <span contenteditable="true" class="editable-text">Type Yours</span></p>
             <p style="margin-top: 15px;">Attendance of the Research Assistant for the month of <span id="displayMonthYear"></span></p>
         </div>
 
@@ -177,7 +178,7 @@
         <table class="footer-section">
             <tr>
                 <td class="footer-left">
-                    Name of the Research Assistant: <span contenteditable="true" class="editable-text">Kavindya Nethranjali</span>
+                    Name of the Research Assistant: <span contenteditable="true" class="editable-text">Type Your Name</span>
                 </td>
                 <td class="footer-right">
                     Prepared by: ................................................
@@ -195,7 +196,7 @@
 
         <div class="signature-block">
             <div class="signature-line">........................................................</div>
-            <div contenteditable="true" class="editable-text">Prof. Santha Gamlath</div>
+            <div contenteditable="true" class="editable-text">Type Yours</div>
             <div contenteditable="true" class="editable-text">Principle Investigator</div>
             <div contenteditable="true" class="editable-text">Department of Political Science</div>
         </div>
@@ -285,9 +286,9 @@
             }
         }
 
-        // === TARGETED PDF FIX (GitHub Issue #114 / html2canvas) ===
+        // === TARGETED PDF FIX (Winner: 9/10 html2canvas -> jsPDF.addImage manually) ===
         function exportToPDF() {
-            // 1. Scroll to top to prevent the canvas capture from being shifted downwards/leftwards
+            // 1. Scroll to top to prevent shifted rendering bounds
             window.scrollTo(0, 0); 
             
             const element = document.getElementById('printableArea');
@@ -297,26 +298,46 @@
             const editables = document.querySelectorAll('.editable-text');
             editables.forEach(el => el.style.borderBottom = 'none');
             
-            // 3. Temporarily force exact A4 dimensions and remove auto-margin 
-            // (Auto-margin is the main cause of html2canvas cutting off the right side of tables)
+            // 3. Temporarily force exact A4 dimensions 
             const originalMargin = element.style.margin;
             const originalMaxWidth = element.style.maxWidth;
             const originalWidth = element.style.width;
             
             element.style.margin = '0';
-            element.style.maxWidth = '1122px'; // Standard A4 Landscape pixel width @ 96 DPI
+            element.style.maxWidth = '1122px';
             element.style.width = '1122px';
 
-            const opt = {
-                margin:       0, // We rely on the CSS padding for margins to prevent double-shrinking
-                filename:     `Attendance_${currentMonthYear.replace(' ', '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1122 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-            };
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                // 4. Restore the UI to normal
+            // 4. Capture the exact snapshot
+            html2canvas(element, { scale: 2, useCORS: true, windowWidth: 1122 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape A4
+                
+                // Fetch the actual pixel width/height of the PDF page
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                // Calculate scale ratio to ensure it perfectly fits inside 1 single page
+                const canvasRatio = canvas.height / canvas.width;
+                let finalWidth = pdfWidth - 20; // 10mm padding on left and right
+                let finalHeight = finalWidth * canvasRatio;
+                
+                // If it's somehow taller than the page, scale by height instead
+                if (finalHeight > (pdfHeight - 20)) {
+                    finalHeight = pdfHeight - 20;
+                    finalWidth = finalHeight / canvasRatio;
+                }
+                
+                // Center the image vertically and horizontally
+                const x = (pdfWidth - finalWidth) / 2;
+                const y = (pdfHeight - finalHeight) / 2;
+                
+                // 5. Draw it onto the PDF and Save
+                pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight);
+                pdf.save(`Attendance_${currentMonthYear.replace(' ', '_')}.pdf`);
+                
+                // 6. Restore UI
                 element.style.margin = originalMargin;
                 element.style.maxWidth = originalMaxWidth;
                 element.style.width = originalWidth;
