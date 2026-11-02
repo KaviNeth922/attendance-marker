@@ -73,12 +73,12 @@
         }
 
         /* === Document/Printable Area Styling === */
+        /* Targeted Fix: Removed rigid 29.7cm width to prevent right-edge clipping in PDF engine */
         #printableArea {
             background-color: white;
-            padding: 1.5cm;
+            padding: 20px 30px; 
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 29.7cm; /* A4 Landscape width */
-            min-height: 21cm; /* A4 Landscape height */
+            max-width: 1100px; /* Allows natural wrapping in browser */
             box-sizing: border-box;
             margin: 0 auto;
             font-family: "Times New Roman", Times, serif;
@@ -87,7 +87,7 @@
 
         .header-section {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         .header-section h1 { font-size: 14pt; font-weight: bold; margin: 0 0 5px 0; }
         .header-section h2 { font-size: 12pt; font-weight: bold; margin: 0 0 5px 0; }
@@ -116,7 +116,6 @@
             background-color: #f0f0f0;
         }
         
-        /* Targeted Fix for Word/PDF 2-Column Footer Layout */
         table.footer-section {
             width: 100%;
             margin-top: 20px;
@@ -138,7 +137,7 @@
         @media print {
             body { background: none; padding: 0; }
             .app-controls { display: none !important; }
-            #printableArea { box-shadow: none; width: auto; min-height: auto; padding: 0; }
+            #printableArea { box-shadow: none; max-width: none; padding: 0; }
             .editable-text { border-bottom: none !important; background: none !important; }
         }
     </style>
@@ -176,7 +175,6 @@
             </tbody>
         </table>
 
-        <!-- Targeted Fix: Uses a borderless HTML table so Word understands the 2-column layout flawlessly -->
         <table class="footer-section">
             <tr>
                 <td class="footer-left">
@@ -212,13 +210,11 @@
             return `<div style="font-size: 10pt; line-height: 1.1; text-align: center; font-weight: normal; color: black; display: inline-block;">${stackedHtml}</div>`;
         }
 
-        // Initialize Dropdowns
         function initApp() {
             const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
             const currentDate = new Date();
 
-            // Populate Months
             months.forEach((month, index) => {
                 const option = document.createElement('option');
                 option.value = index;
@@ -227,7 +223,6 @@
                 monthSelect.appendChild(option);
             });
 
-            // Populate Years (Current year +/- 5)
             const currentYear = currentDate.getFullYear();
             for (let i = currentYear - 5; i <= currentYear + 5; i++) {
                 const option = document.createElement('option');
@@ -240,7 +235,6 @@
             renderCalendar();
         }
 
-        // Render the Grid based on selected Month/Year
         function renderCalendar() {
             const year = parseInt(document.getElementById('yearSelect').value);
             const month = parseInt(document.getElementById('monthSelect').value);
@@ -248,7 +242,6 @@
 
             document.getElementById('displayMonthYear').innerText = `${months[month]} ${year}`;
 
-            // Render Header Row
             let headerHtml = '<tr>';
             for (let i = 1; i <= 31; i++) {
                 headerHtml += `<th>${i <= daysInMonth ? i : ''}</th>`;
@@ -256,12 +249,11 @@
             headerHtml += '</tr>';
             document.getElementById('gridHeader').innerHTML = headerHtml;
 
-            // Render Data Row
             let bodyHtml = '<tr>';
             for (let i = 1; i <= 31; i++) {
                 if (i <= daysInMonth) {
                     const date = new Date(year, month, i);
-                    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+                    const dayOfWeek = date.getDay();
                     
                     if (dayOfWeek === 0 || dayOfWeek === 6) {
                         bodyHtml += `<td onclick="toggleCell(this)" data-state="weekend">${getVerticalText('Weekend')}</td>`;
@@ -276,7 +268,6 @@
             document.getElementById('gridBody').innerHTML = bodyHtml;
         }
 
-        // Cycle through cell states
         function toggleCell(cell) {
             const currentState = cell.getAttribute('data-state');
             
@@ -303,11 +294,13 @@
             const element = document.getElementById('printableArea');
             const currentMonthYear = document.getElementById('displayMonthYear').innerText;
             
+            // Targeted Fix: Explicit margin array (Top, Right, Bottom, Left) forces center alignment, 
+            // and html2canvas 'scale: 2' combined with 'windowWidth' ensures the 31st column is captured.
             const opt = {
-                margin:       10, // Margin in mm
+                margin:       [15, 10, 15, 10], // mm
                 filename:     `Attendance_${currentMonthYear.replace(' ', '_')}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true, windowWidth: 1200 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
             
@@ -324,7 +317,6 @@
             clone.querySelectorAll('.editable-text').forEach(el => el.style.borderBottom = 'none');
             const elementHTML = clone.innerHTML;
             
-            // Targeted Fix: Fully mapped CSS for Word export (tight 0.7in margins to guarantee 1-page fit)
             const header = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>Export Document</title>
