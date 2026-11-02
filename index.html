@@ -7,149 +7,75 @@
     
     <!-- Required Libraries for Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        /* UI Controls Styling */
+        /* === UI & App Controls Styling (Not Exported) === */
         body {
-            background-color: #f3f4f6;
-            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f4f9;
+            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 20px;
         }
-
-        .controls-bar {
-            width: 100%;
-            background-color: #ffffff;
+        .app-controls {
+            background: #ffffff;
             padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 20px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            gap: 15px;
+            flex-wrap: wrap;
         }
-
-        .controls-group {
+        .app-controls select, .app-controls button {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .app-controls button {
+            background-color: #2d6a4f;
+            color: white;
+            border: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .app-controls button:hover {
+            background-color: #1b4332;
+        }
+        .app-controls .export-group {
+            margin-left: auto;
             display: flex;
-            align-items: center;
             gap: 10px;
         }
-
-        select {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            background-color: #f9fafb;
-            cursor: pointer;
+        .helper-text {
+            font-size: 13px;
+            color: #666;
+            margin-left: 10px;
         }
 
-        .export-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .export-btn {
-            background-color: #2563eb;
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .export-btn:hover {
-            background-color: #1d4ed8;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            background-color: #ffffff;
-            min-width: 160px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 6px;
-            border: 1px solid #e5e7eb;
-            z-index: 1;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-
-        .export-dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .dropdown-content button {
-            width: 100%;
-            padding: 10px 16px;
-            border: none;
-            background: none;
-            text-align: left;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .dropdown-content button:hover {
-            background-color: #f3f4f6;
-        }
-
-        .preview-container {
-            margin: 40px auto;
-            overflow-x: auto;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Printable A4 Landscape Document Area */
-        #print-area {
-            width: 29.7cm;
-            min-height: 21cm;
+        /* === Document/Printable Area Styling (Matches Your Original A4 Format) === */
+        #printableArea {
             background-color: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             padding: 1.5cm;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 29.7cm; /* A4 Landscape width */
+            min-height: 21cm; /* A4 Landscape height */
             box-sizing: border-box;
-            
-            /* Original Document Styling */
+            margin: 0 auto;
             font-family: "Times New Roman", Times, serif;
-            font-size: 12pt;
-            line-height: 1.5;
             color: black;
         }
 
-        @page {
-            size: A4 landscape;
-            margin: 1.5cm;
-        }
-
-        #print-area .header-section {
+        .header-section {
             text-align: center;
             margin-bottom: 30px;
         }
-        #print-area .header-section h1 {
-            font-size: 14pt;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-        }
-        #print-area .header-section h2, 
-        #print-area .header-section p {
-            font-size: 12pt;
-            font-weight: bold;
-            margin: 0 0 5px 0;
-        }
+        .header-section h1 { font-size: 14pt; font-weight: bold; margin: 0 0 5px 0; }
+        .header-section h2 { font-size: 12pt; font-weight: bold; margin: 0 0 5px 0; }
+        .header-section p { font-size: 12pt; font-weight: bold; margin: 0 0 5px 0; }
         
         table.attendance-grid {
             width: 100%;
@@ -161,39 +87,26 @@
             border: 1px solid black;
             text-align: center;
             vertical-align: middle;
+            width: 3.22%;
         }
-        table.attendance-grid th {
-            height: 35px;
-            font-weight: bold;
-            font-size: 11pt;
-        }
+        table.attendance-grid th { height: 35px; font-weight: bold; font-size: 11pt; }
         table.attendance-grid td {
             height: 120px;
-            font-size: 11pt;
-            cursor: pointer; /* Interaction hint */
+            font-size: 14pt;
+            cursor: pointer; /* Indicates cell is interactive */
+            user-select: none;
         }
-        table.attendance-grid td.weekend-cell {
-            background-color: #f9f9f9;
-            cursor: not-allowed;
-        }
-
-        .vertical-text {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            transform: rotate(180deg);
-            white-space: nowrap;
-            margin: auto;
-            font-size: 10pt;
+        table.attendance-grid td:hover {
+            background-color: #f0f0f0;
         }
         
         .footer-section {
             width: 100%;
             display: table;
             margin-top: 20px;
+            font-size: 12pt;
         }
-        .footer-row {
-            display: table-row;
-        }
+        .footer-row { display: table-row; }
         .footer-left {
             display: table-cell;
             width: 60%;
@@ -207,312 +120,218 @@
             vertical-align: top;
             padding-bottom: 15px;
         }
-        .signature-block {
-            margin-top: 60px;
-        }
-        .signature-line {
-            margin-bottom: 5px;
+        .signature-block { margin-top: 60px; font-size: 12pt; }
+        .signature-line { margin-bottom: 5px; }
+
+        @media print {
+            body { background: none; padding: 0; }
+            .app-controls { display: none !important; }
+            #printableArea { box-shadow: none; width: auto; min-height: auto; padding: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- UI Controls -->
-    <div class="controls-bar">
-        <div class="controls-group">
-            <label for="monthSelect" style="font-weight: 500; font-size: 14px;">Month:</label>
-            <select id="monthSelect" onchange="generateCalendar()">
-                <option value="0">January</option>
-                <option value="1">February</option>
-                <option value="2">March</option>
-                <option value="3">April</option>
-                <option value="4">May</option>
-                <option value="5">June</option>
-                <option value="6">July</option>
-                <option value="7">August</option>
-                <option value="8">September</option>
-                <option value="9">October</option>
-                <option value="10">November</option>
-                <option value="11">December</option>
-            </select>
-        </div>
-        <div class="controls-group">
-            <label for="yearSelect" style="font-weight: 500; font-size: 14px;">Year:</label>
-            <select id="yearSelect" onchange="generateCalendar()">
-                <!-- Populated via JS -->
-            </select>
-        </div>
-        <div class="export-dropdown">
-            <button class="export-btn">
-                Export As ▾
-            </button>
-            <div class="dropdown-content">
-                <button onclick="exportPDF()">Export as PDF</button>
-                <button onclick="exportWord()">Export as Word (DOCX)</button>
-            </div>
+    <!-- INTERACTIVE CONTROLS -->
+    <div class="app-controls">
+        <select id="monthSelect" onchange="renderCalendar()"></select>
+        <select id="yearSelect" onchange="renderCalendar()"></select>
+        <span class="helper-text">Click any table cell to toggle: Present (&radic;) &rarr; Empty &rarr; Holiday &rarr; Weekend</span>
+        
+        <div class="export-group">
+            <button onclick="exportToPDF()">Export as PDF</button>
+            <button onclick="exportToWord()">Export as Word</button>
         </div>
     </div>
 
-    <!-- Document Preview Area -->
-    <div class="preview-container">
-        <div id="print-area">
-            <div class="header-section">
-                <h1>University of Sri Jayewardenepura</h1>
-                <h2>Faculty of Humanities and Social Sciences</h2>
-                <h2>Department of Political Science</h2>
-                <p>Research Grant No. RC/URG/HSS/2026/04</p>
-                <p style="margin-top: 15px;">Attendance of the Research Assistant for the month of <span id="displayMonthYear">October 2026</span></p>
-            </div>
+    <!-- DOCUMENT AREA TO EXPORT -->
+    <div id="printableArea">
+        <div class="header-section">
+            <h1>University of Sri Jayewardenepura</h1>
+            <h2>Faculty of Humanities and Social Sciences</h2>
+            <h2>Department of Political Science</h2>
+            <p>Research Grant No. RC/URG/HSS/2026/04</p>
+            <p style="margin-top: 15px;">Attendance of the Research Assistant for the month of <span id="displayMonthYear"></span></p>
+        </div>
 
-            <div id="calendarContainer">
-                <!-- Table generated dynamically here -->
-            </div>
+        <table class="attendance-grid">
+            <thead id="gridHeader">
+                <!-- Days 1 to 31 injected here -->
+            </thead>
+            <tbody id="gridBody">
+                <!-- Checkmarks and Weekends injected here -->
+            </tbody>
+        </table>
 
-            <div class="footer-section">
-                <div class="footer-row">
-                    <div class="footer-left">
-                        Name of the Research Assistant: Kavindya Nethranjali
-                    </div>
-                    <div class="footer-right">
-                        Prepared by: ................................................
-                    </div>
+        <div class="footer-section">
+            <div class="footer-row">
+                <div class="footer-left">
+                    Name of the Research Assistant: Kavindya Nethranjali
                 </div>
-                <div class="footer-row">
-                    <div class="footer-left">
-                        I certify that the above details are accurate.
-                    </div>
-                    <div class="footer-right">
-                        Checked by: ................................................
-                    </div>
+                <div class="footer-right">
+                    Prepared by: ................................................
                 </div>
             </div>
-
-            <div class="signature-block">
-                <div class="signature-line">........................................................</div>
-                <div>Prof. Santha Gamlath</div>
-                <div>Principle Investigator</div>
-                <div>Department of Political Science</div>
+            <div class="footer-row">
+                <div class="footer-left">
+                    I certify that the above details are accurate.
+                </div>
+                <div class="footer-right">
+                    Checked by: ................................................
+                </div>
             </div>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-line">........................................................</div>
+            <div>Prof. Santha Gamlath</div>
+            <div>Principle Investigator</div>
+            <div>Department of Political Science</div>
         </div>
     </div>
 
     <script>
-        // Initialization
-        window.onload = () => {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth();
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        // Targeted Fix for Export Libraries: Stacks characters vertically using standard HTML breaks
+        function getVerticalText(text) {
+            const stackedHtml = text.split('').join('<br>');
+            return `<div style="font-size: 10pt; line-height: 1.1; text-align: center; font-weight: normal; color: black; display: inline-block;">${stackedHtml}</div>`;
+        }
 
-            // Populate Years
+        // Initialize Dropdowns
+        function initApp() {
+            const monthSelect = document.getElementById('monthSelect');
             const yearSelect = document.getElementById('yearSelect');
-            for(let i = currentYear - 5; i <= currentYear + 5; i++) {
-                let option = document.createElement('option');
+            const currentDate = new Date();
+
+            // Populate Months
+            months.forEach((month, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.text = month;
+                if (index === currentDate.getMonth()) option.selected = true;
+                monthSelect.appendChild(option);
+            });
+
+            // Populate Years (Current year +/- 5)
+            const currentYear = currentDate.getFullYear();
+            for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+                const option = document.createElement('option');
                 option.value = i;
-                option.innerText = i;
-                if(i === currentYear) option.selected = true;
+                option.text = i;
+                if (i === currentYear) option.selected = true;
                 yearSelect.appendChild(option);
             }
 
-            // Set Current Month
-            document.getElementById('monthSelect').value = currentMonth;
+            renderCalendar();
+        }
 
-            // Generate Initial Calendar
-            generateCalendar();
-        };
-
-        function generateCalendar() {
+        // Render the Grid based on selected Month/Year
+        function renderCalendar() {
             const year = parseInt(document.getElementById('yearSelect').value);
             const month = parseInt(document.getElementById('monthSelect').value);
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"];
-            
-            // Update Title
-            document.getElementById('displayMonthYear').innerText = `${monthNames[month]} ${year}`;
-
-            // Calculate Days
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const colWidth = (100 / daysInMonth).toFixed(2);
 
-            let tableHTML = `<table class="attendance-grid"><tr>`;
-            
-            // Generate Headers
-            for(let i = 1; i <= daysInMonth; i++) {
-                tableHTML += `<th style="width: ${colWidth}%;">${i}</th>`;
+            // Update Header Text
+            document.getElementById('displayMonthYear').innerText = `${months[month]} ${year}`;
+
+            // Render Header Row (1-31)
+            let headerHtml = '<tr>';
+            for (let i = 1; i <= 31; i++) {
+                headerHtml += `<th>${i <= daysInMonth ? i : ''}</th>`;
             }
-            tableHTML += `</tr><tr>`;
+            headerHtml += '</tr>';
+            document.getElementById('gridHeader').innerHTML = headerHtml;
 
-            // Generate Cells
-            for(let i = 1; i <= daysInMonth; i++) {
-                const date = new Date(year, month, i);
-                const dayOfWeek = date.getDay();
-                
-                // Sri Lankan calendar weekends (0 = Sunday, 6 = Saturday)
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    tableHTML += `<td class="weekend-cell" id="day-${i}"><div class="vertical-text">Weekend</div></td>`;
+            // Render Data Row with Auto-Weekends
+            let bodyHtml = '<tr>';
+            for (let i = 1; i <= 31; i++) {
+                if (i <= daysInMonth) {
+                    const date = new Date(year, month, i);
+                    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+                    
+                    if (dayOfWeek === 0 || dayOfWeek === 6) {
+                        bodyHtml += `<td onclick="toggleCell(this)" data-state="weekend">${getVerticalText('Weekend')}</td>`;
+                    } else {
+                        bodyHtml += `<td onclick="toggleCell(this)" data-state="present">&radic;</td>`;
+                    }
                 } else {
-                    tableHTML += `<td onclick="toggleAttendance(this)" id="day-${i}"></td>`;
+                    bodyHtml += `<td data-state="empty"></td>`; // Empty boxes for days 29, 30, 31 if month is shorter
                 }
             }
-            
-            tableHTML += `</tr></table>`;
-            document.getElementById('calendarContainer').innerHTML = tableHTML;
+            bodyHtml += '</tr>';
+            document.getElementById('gridBody').innerHTML = bodyHtml;
         }
 
-        // Toggle Checkmark Interaction
-        function toggleAttendance(cell) {
-            // Checkmark symbol: √ (&radic;)
-            if (cell.innerHTML === '√' || cell.innerHTML === '&radic;') {
+        // Cycle through cell states on click
+        function toggleCell(cell) {
+            const currentState = cell.getAttribute('data-state');
+            
+            if (currentState === 'present') {
                 cell.innerHTML = '';
+                cell.setAttribute('data-state', 'empty');
+            } else if (currentState === 'empty') {
+                cell.innerHTML = getVerticalText('Holiday');
+                cell.setAttribute('data-state', 'holiday');
+            } else if (currentState === 'holiday') {
+                cell.innerHTML = getVerticalText('Weekend');
+                cell.setAttribute('data-state', 'weekend');
             } else {
                 cell.innerHTML = '&radic;';
+                cell.setAttribute('data-state', 'present');
             }
         }
 
-        // Export to PDF using html2pdf.js
-        function exportPDF() {
-            const element = document.getElementById('print-area');
-            const monthText = document.getElementById('displayMonthYear').innerText.replace(' ', '_');
+        // PDF Export using html2pdf
+        function exportToPDF() {
+            const element = document.getElementById('printableArea');
+            const currentMonthYear = document.getElementById('displayMonthYear').innerText;
             
             const opt = {
-                margin:       0,
-                filename:     `Attendance_${monthText}.pdf`,
+                margin:       10, // Margin in mm
+                filename:     `Attendance_${currentMonthYear.replace(' ', '_')}.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'cm', format: 'a4', orientation: 'landscape' }
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
             
             html2pdf().set(opt).from(element).save();
         }
 
-        // Export to Word using docx.js
-        async function exportWord() {
-            const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, TextDirection, VerticalAlign, BorderStyle, HeadingLevel } = docx;
-
-            const year = parseInt(document.getElementById('yearSelect').value);
-            const month = parseInt(document.getElementById('monthSelect').value);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const monthText = document.getElementById('displayMonthYear').innerText;
-
-            // Generate Table Headers & Data
-            const headerCells = [];
-            const dataCells = [];
-
-            for(let i = 1; i <= daysInMonth; i++) {
-                headerCells.push(new TableCell({
-                    children: [new Paragraph({ text: i.toString(), alignment: AlignmentType.CENTER })],
-                    verticalAlign: VerticalAlign.CENTER,
-                    width: { size: 100/daysInMonth, type: WidthType.PERCENTAGE }
-                }));
-
-                const domCell = document.getElementById(`day-${i}`);
-                let cellText = "";
-                let textDir = undefined;
-                
-                if (domCell.classList.contains('weekend-cell')) {
-                    cellText = "Weekend";
-                    textDir = TextDirection.BOTTOM_TO_TOP_LEFT_TO_RIGHT; // Vertical text in Word
-                } else {
-                    cellText = domCell.innerText === '√' ? '√' : '';
-                }
-
-                dataCells.push(new TableCell({
-                    children: [new Paragraph({ 
-                        children: [new TextRun({ text: cellText, size: 22 })], // size 22 = 11pt
-                        alignment: AlignmentType.CENTER 
-                    })],
-                    verticalAlign: VerticalAlign.CENTER,
-                    textDirection: textDir,
-                    shading: cellText === "Weekend" ? { fill: "F9F9F9" } : undefined
-                }));
-            }
-
-            const doc = new Document({
-                sections: [{
-                    properties: {
-                        page: {
-                            size: { orientation: docx.PageOrientation.LANDSCAPE },
-                            margin: { top: "1.5cm", right: "1.5cm", bottom: "1.5cm", left: "1.5cm" }
-                        }
-                    },
-                    children: [
-                        new Paragraph({
-                            children: [new TextRun({ text: "University of Sri Jayewardenepura", bold: true, size: 28 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 100 }
-                        }),
-                        new Paragraph({
-                            children: [new TextRun({ text: "Faculty of Humanities and Social Sciences", bold: true, size: 24 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 100 }
-                        }),
-                        new Paragraph({
-                            children: [new TextRun({ text: "Department of Political Science", bold: true, size: 24 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 100 }
-                        }),
-                        new Paragraph({
-                            children: [new TextRun({ text: "Research Grant No. RC/URG/HSS/2026/04", bold: true, size: 24 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 300 }
-                        }),
-                        new Paragraph({
-                            children: [new TextRun({ text: `Attendance of the Research Assistant for the month of ${monthText}`, bold: true, size: 24 })],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 600 }
-                        }),
-                        
-                        // Main Grid
-                        new Table({
-                            rows: [
-                                new TableRow({ children: headerCells, height: { value: "35px", rule: docx.HeightRule.EXACT } }),
-                                new TableRow({ children: dataCells, height: { value: "120px", rule: docx.HeightRule.EXACT } })
-                            ],
-                            width: { size: 100, type: WidthType.PERCENTAGE }
-                        }),
-                        
-                        // Spacer
-                        new Paragraph({ text: "", spacing: { before: 400 } }),
-
-                        // Footer Layout (using a borderless table for alignment)
-                        new Table({
-                            borders: {
-                                top: { style: BorderStyle.NONE },
-                                bottom: { style: BorderStyle.NONE },
-                                left: { style: BorderStyle.NONE },
-                                right: { style: BorderStyle.NONE },
-                                insideHorizontal: { style: BorderStyle.NONE },
-                                insideVertical: { style: BorderStyle.NONE },
-                            },
-                            width: { size: 100, type: WidthType.PERCENTAGE },
-                            rows: [
-                                new TableRow({
-                                    children: [
-                                        new TableCell({ children: [new Paragraph({ text: "Name of the Research Assistant: Kavindya Nethranjali", size: 24 })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Prepared by: ................................................", alignment: AlignmentType.RIGHT, size: 24 })] })
-                                    ]
-                                }),
-                                new TableRow({
-                                    children: [
-                                        new TableCell({ children: [new Paragraph({ text: "I certify that the above details are accurate.", size: 24, spacing: { before: 300 } })] }),
-                                        new TableCell({ children: [new Paragraph({ text: "Checked by: ................................................", alignment: AlignmentType.RIGHT, size: 24, spacing: { before: 300 } })] })
-                                    ]
-                                })
-                            ]
-                        }),
-                        
-                        // Signatures
-                        new Paragraph({ text: "........................................................", spacing: { before: 1200, after: 100 }, size: 24 }),
-                        new Paragraph({ text: "Prof. Santha Gamlath", spacing: { after: 100 }, size: 24 }),
-                        new Paragraph({ text: "Principle Investigator", spacing: { after: 100 }, size: 24 }),
-                        new Paragraph({ text: "Department of Political Science", size: 24 }),
-                    ]
-                }]
-            });
-
-            Packer.toBlob(doc).then(blob => {
-                saveAs(blob, `Attendance_${monthText.replace(' ', '_')}.docx`);
-            });
+        // Word Export using Blob
+        function exportToWord() {
+            const currentMonthYear = document.getElementById('displayMonthYear').innerText;
+            const elementHTML = document.getElementById('printableArea').innerHTML;
+            
+            // MS Word namespace and specific CSS enforcing A4 Landscape and matching table layout
+            const header = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Export Document</title>
+                <style>
+                    @page WordSection1 { size: 841.9pt 595.3pt; mso-page-orientation: landscape; margin: 1.0in; }
+                    div.WordSection1 { page: WordSection1; font-family: "Times New Roman", serif; }
+                    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+                    th, td { border: 1px solid black; text-align: center; vertical-align: middle; }
+                    th { height: 35px; font-weight: bold; font-size: 11pt; }
+                    td { height: 120px; font-size: 14pt; }
+                    .header-section { text-align: center; margin-bottom: 20px; }
+                    .header-section h1 { font-size: 14pt; margin-bottom: 5px; }
+                    .header-section h2, .header-section p { font-size: 12pt; margin: 3px 0; }
+                </style>
+                </head><body><div class='WordSection1'>
+            `;
+            const footer = "</div></body></html>";
+            
+            const fullHTML = header + elementHTML + footer;
+            
+            // Create Blob and trigger download
+            const blob = new Blob(['\ufeff', fullHTML], { type: 'application/msword' });
+            saveAs(blob, `Attendance_${currentMonthYear.replace(' ', '_')}.doc`);
         }
+
+        // Run on load
+        window.onload = initApp;
     </script>
 </body>
 </html>
