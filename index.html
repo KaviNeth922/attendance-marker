@@ -56,7 +56,23 @@
             margin-left: 10px;
         }
 
-        /* === Document/Printable Area Styling (Matches Your Original A4 Format) === */
+        /* === Editable Text Styling === */
+        .editable-text {
+            outline: none;
+            border-bottom: 1px dashed transparent;
+            transition: background-color 0.2s, border-bottom 0.2s;
+        }
+        .editable-text:hover {
+            background-color: #fff3cd;
+            border-bottom: 1px dashed #ffc107;
+            cursor: text;
+        }
+        .editable-text:focus {
+            background-color: #e2e3e5;
+            border-bottom: 1px dashed #6c757d;
+        }
+
+        /* === Document/Printable Area Styling === */
         #printableArea {
             background-color: white;
             padding: 1.5cm;
@@ -80,7 +96,7 @@
         table.attendance-grid {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
             table-layout: fixed;
         }
         table.attendance-grid th, table.attendance-grid td {
@@ -93,40 +109,37 @@
         table.attendance-grid td {
             height: 120px;
             font-size: 14pt;
-            cursor: pointer; /* Indicates cell is interactive */
+            cursor: pointer;
             user-select: none;
         }
         table.attendance-grid td:hover {
             background-color: #f0f0f0;
         }
         
-        .footer-section {
+        /* Targeted Fix for Word/PDF 2-Column Footer Layout */
+        table.footer-section {
             width: 100%;
-            display: table;
             margin-top: 20px;
             font-size: 12pt;
+            border: none;
+            border-collapse: collapse;
         }
-        .footer-row { display: table-row; }
-        .footer-left {
-            display: table-cell;
-            width: 60%;
-            vertical-align: top;
+        table.footer-section td {
+            border: none;
             padding-bottom: 15px;
-        }
-        .footer-right {
-            display: table-cell;
-            width: 40%;
-            text-align: right;
             vertical-align: top;
-            padding-bottom: 15px;
         }
-        .signature-block { margin-top: 60px; font-size: 12pt; }
+        .footer-left { text-align: left; width: 60%; }
+        .footer-right { text-align: right; width: 40%; }
+        
+        .signature-block { margin-top: 50px; font-size: 12pt; }
         .signature-line { margin-bottom: 5px; }
 
         @media print {
             body { background: none; padding: 0; }
             .app-controls { display: none !important; }
             #printableArea { box-shadow: none; width: auto; min-height: auto; padding: 0; }
+            .editable-text { border-bottom: none !important; background: none !important; }
         }
     </style>
 </head>
@@ -136,7 +149,7 @@
     <div class="app-controls">
         <select id="monthSelect" onchange="renderCalendar()"></select>
         <select id="yearSelect" onchange="renderCalendar()"></select>
-        <span class="helper-text">Click any table cell to toggle: Present (&radic;) &rarr; Empty &rarr; Holiday &rarr; Weekend</span>
+        <span class="helper-text">Click any table cell to toggle marks. <strong>Click names/titles at the bottom to edit them.</strong></span>
         
         <div class="export-group">
             <button onclick="exportToPDF()">Export as PDF</button>
@@ -150,7 +163,7 @@
             <h1>University of Sri Jayewardenepura</h1>
             <h2>Faculty of Humanities and Social Sciences</h2>
             <h2>Department of Political Science</h2>
-            <p>Research Grant No. RC/URG/HSS/2026/04</p>
+            <p>Research Grant No. <span contenteditable="true" class="editable-text">RC/URG/HSS/2026/04</span></p>
             <p style="margin-top: 15px;">Attendance of the Research Assistant for the month of <span id="displayMonthYear"></span></p>
         </div>
 
@@ -163,37 +176,37 @@
             </tbody>
         </table>
 
-        <div class="footer-section">
-            <div class="footer-row">
-                <div class="footer-left">
-                    Name of the Research Assistant: Kavindya Nethranjali
-                </div>
-                <div class="footer-right">
+        <!-- Targeted Fix: Uses a borderless HTML table so Word understands the 2-column layout flawlessly -->
+        <table class="footer-section">
+            <tr>
+                <td class="footer-left">
+                    Name of the Research Assistant: <span contenteditable="true" class="editable-text">Kavindya Nethranjali</span>
+                </td>
+                <td class="footer-right">
                     Prepared by: ................................................
-                </div>
-            </div>
-            <div class="footer-row">
-                <div class="footer-left">
+                </td>
+            </tr>
+            <tr>
+                <td class="footer-left">
                     I certify that the above details are accurate.
-                </div>
-                <div class="footer-right">
+                </td>
+                <td class="footer-right">
                     Checked by: ................................................
-                </div>
-            </div>
-        </div>
+                </td>
+            </tr>
+        </table>
 
         <div class="signature-block">
             <div class="signature-line">........................................................</div>
-            <div>Prof. Santha Gamlath</div>
-            <div>Principle Investigator</div>
-            <div>Department of Political Science</div>
+            <div contenteditable="true" class="editable-text">Prof. Santha Gamlath</div>
+            <div contenteditable="true" class="editable-text">Principle Investigator</div>
+            <div contenteditable="true" class="editable-text">Department of Political Science</div>
         </div>
     </div>
 
     <script>
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         
-        // Targeted Fix for Export Libraries: Stacks characters vertically using standard HTML breaks
         function getVerticalText(text) {
             const stackedHtml = text.split('').join('<br>');
             return `<div style="font-size: 10pt; line-height: 1.1; text-align: center; font-weight: normal; color: black; display: inline-block;">${stackedHtml}</div>`;
@@ -233,10 +246,9 @@
             const month = parseInt(document.getElementById('monthSelect').value);
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // Update Header Text
             document.getElementById('displayMonthYear').innerText = `${months[month]} ${year}`;
 
-            // Render Header Row (1-31)
+            // Render Header Row
             let headerHtml = '<tr>';
             for (let i = 1; i <= 31; i++) {
                 headerHtml += `<th>${i <= daysInMonth ? i : ''}</th>`;
@@ -244,7 +256,7 @@
             headerHtml += '</tr>';
             document.getElementById('gridHeader').innerHTML = headerHtml;
 
-            // Render Data Row with Auto-Weekends
+            // Render Data Row
             let bodyHtml = '<tr>';
             for (let i = 1; i <= 31; i++) {
                 if (i <= daysInMonth) {
@@ -257,14 +269,14 @@
                         bodyHtml += `<td onclick="toggleCell(this)" data-state="present">&radic;</td>`;
                     }
                 } else {
-                    bodyHtml += `<td data-state="empty"></td>`; // Empty boxes for days 29, 30, 31 if month is shorter
+                    bodyHtml += `<td data-state="empty"></td>`;
                 }
             }
             bodyHtml += '</tr>';
             document.getElementById('gridBody').innerHTML = bodyHtml;
         }
 
-        // Cycle through cell states on click
+        // Cycle through cell states
         function toggleCell(cell) {
             const currentState = cell.getAttribute('data-state');
             
@@ -285,6 +297,9 @@
 
         // PDF Export using html2pdf
         function exportToPDF() {
+            const editables = document.querySelectorAll('.editable-text');
+            editables.forEach(el => el.style.borderBottom = 'none');
+            
             const element = document.getElementById('printableArea');
             const currentMonthYear = document.getElementById('displayMonthYear').innerText;
             
@@ -296,28 +311,43 @@
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
             
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).save().then(() => {
+                editables.forEach(el => el.style.borderBottom = '');
+            });
         }
 
         // Word Export using Blob
         function exportToWord() {
             const currentMonthYear = document.getElementById('displayMonthYear').innerText;
-            const elementHTML = document.getElementById('printableArea').innerHTML;
             
-            // MS Word namespace and specific CSS enforcing A4 Landscape and matching table layout
+            const clone = document.getElementById('printableArea').cloneNode(true);
+            clone.querySelectorAll('.editable-text').forEach(el => el.style.borderBottom = 'none');
+            const elementHTML = clone.innerHTML;
+            
+            // Targeted Fix: Fully mapped CSS for Word export (tight 0.7in margins to guarantee 1-page fit)
             const header = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
                 <head><meta charset='utf-8'><title>Export Document</title>
                 <style>
-                    @page WordSection1 { size: 841.9pt 595.3pt; mso-page-orientation: landscape; margin: 1.0in; }
+                    @page WordSection1 { size: 841.9pt 595.3pt; mso-page-orientation: landscape; margin: 0.7in; }
                     div.WordSection1 { page: WordSection1; font-family: "Times New Roman", serif; }
-                    table { border-collapse: collapse; width: 100%; table-layout: fixed; }
-                    th, td { border: 1px solid black; text-align: center; vertical-align: middle; }
-                    th { height: 35px; font-weight: bold; font-size: 11pt; }
-                    td { height: 120px; font-size: 14pt; }
-                    .header-section { text-align: center; margin-bottom: 20px; }
-                    .header-section h1 { font-size: 14pt; margin-bottom: 5px; }
+                    
+                    table.attendance-grid { border-collapse: collapse; width: 100%; table-layout: fixed; margin-bottom: 25px; }
+                    table.attendance-grid th, table.attendance-grid td { border: 1px solid black; text-align: center; vertical-align: middle; }
+                    table.attendance-grid th { height: 35px; font-weight: bold; font-size: 11pt; }
+                    table.attendance-grid td { height: 115px; font-size: 14pt; }
+                    
+                    table.footer-section { width: 100%; margin-top: 15px; font-size: 12pt; border: none; border-collapse: collapse; }
+                    table.footer-section td { border: none; padding-bottom: 15px; vertical-align: top; }
+                    .footer-left { text-align: left; width: 60%; }
+                    .footer-right { text-align: right; width: 40%; }
+                    
+                    .header-section { text-align: center; margin-bottom: 15px; }
+                    .header-section h1 { font-size: 14pt; margin-bottom: 5px; margin-top: 0; }
                     .header-section h2, .header-section p { font-size: 12pt; margin: 3px 0; }
+                    .signature-block { margin-top: 35px; font-size: 12pt; text-align: left; }
+                    .signature-line { margin-bottom: 5px; }
+                    .signature-block div { margin: 0; padding: 0; }
                 </style>
                 </head><body><div class='WordSection1'>
             `;
@@ -325,12 +355,10 @@
             
             const fullHTML = header + elementHTML + footer;
             
-            // Create Blob and trigger download
             const blob = new Blob(['\ufeff', fullHTML], { type: 'application/msword' });
             saveAs(blob, `Attendance_${currentMonthYear.replace(' ', '_')}.doc`);
         }
 
-        // Run on load
         window.onload = initApp;
     </script>
 </body>
